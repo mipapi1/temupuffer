@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-ui
+  labels: {app.kubernetes.io/name: search-ui, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: search-ui}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: search-ui, app.kubernetes.io/part-of: temupuffer-search}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 101, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: ui
+          image: temupuffer-search-ui
+          env: [{name: SEARCH_API, value: "search-api:8090"}]
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 5}
+          resources:
+            requests: {cpu: 20m, memory: 32Mi}
+            limits: {memory: 128Mi}
+          securityContext: {allowPrivilegeEscalation: false}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-ui
+  labels: {app.kubernetes.io/name: search-ui, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  selector: {app.kubernetes.io/name: search-ui}
+  ports: [{name: http, port: 80, targetPort: http}]

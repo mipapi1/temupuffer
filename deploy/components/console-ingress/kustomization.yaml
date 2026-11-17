@@ -1,0 +1,5 @@
+# The console behind the cluster's default ingress controller (Traefik on K3s).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ingress.yaml

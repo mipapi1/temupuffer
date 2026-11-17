@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# No namespace here: overlays (or deploy/k3s.sh) choose it. All service names
+# below are short, in-namespace DNS names, so any namespace works.
+resources:
+  - config.yaml
+  - query.yaml
+  - indexer.yaml
+  - console.yaml

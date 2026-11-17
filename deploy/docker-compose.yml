@@ -1,0 +1,115 @@
+# temupuffer on a laptop: SILO (MinIO-compatible) + 2 query nodes + 1 indexer + the console.
+#
+#   ./deploy/local.sh up     build, start, wait until ready, print URL + key
+#   ./deploy/local.sh down   stop (reset: also delete data)
+# Ports: CONSOLE_PORT (3000), S3_PORT (19000), S3_CONSOLE_PORT (19001).
+#
+# The query service runs 2 replicas. nginx in the console hashes each namespace
+# onto one of them (namespace affinity, see db/ui/backends.sh), using the
+# replicas' container names, because one name for both would give no affinity.
+name: temupuffer
+
+x-db-env: &db-env
+  S3_ENDPOINT: http://minio:9000
+  S3_BUCKET: temupuffer
+  AWS_ACCESS_KEY_ID: minioadmin
+  AWS_SECRET_ACCESS_KEY: minioadmin
+  AWS_DEFAULT_REGION: us-east-1
+  API_KEY: ${TEMUPUFFER_API_KEY:-tpuf-dev-key}
+  PEER_DNS: query
+  INDEXER_DNS: indexer
+  # Demo tuning: a slower indexer and a low backpressure limit, so a 50k-doc
+  # load builds a visible backlog and can hit 429. See temupuffer/config.py.
+  INDEXER_MAX_ROWS_PER_PASS: "3000"
+  INDEXER_PASS_DELAY_S: "1"
+  BACKPRESSURE_MAX_UNINDEXED_ROWS: "20000"
+
+services:
+  minio:
+    # The same SILO build your K3s cluster runs (a maintained MinIO fork; MinIO
+    # stopped publishing images in 2025). Pinned by digest, multi-arch.
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["${S3_PORT:-19000}:9000", "${S3_CONSOLE_PORT:-19001}:9001"]
+    volumes: [minio-data:/data]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 2s
+      retries: 30
+
+  query:
+    build: ../db
+    image: temupuffer-db:dev
+    environment: *db-env
+    deploy:
+      replicas: 2
+    restart: unless-stopped
+    depends_on:
+      minio: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/readyz')"]
+      interval: 3s
+      retries: 20
+
+  indexer:
+    image: temupuffer-db:dev
+    command: ["python", "-m", "indexer.main"]
+    environment: *db-env
+    restart: unless-stopped
+    depends_on:
+      query: {condition: service_healthy}
+
+  console:
+    build: ../db/ui
+    image: temupuffer-console:dev
+    environment:
+      # Compose names replicas <project>-<service>-<n>; keep in step with replicas above.
+      QUERY_RING: temupuffer-query-1:8080+temupuffer-query-2:8080
+    ports: ["${CONSOLE_PORT:-3000}:8080"]
+    depends_on:
+      query: {condition: service_healthy}
+
+  # --- temupuffer search (demo-app/), opt-in: docker compose --profile search up -d ---------
+  # Embed + load a dataset slice into it:
+  #   docker compose -f deploy/docker-compose.yml --profile search run --rm search-api \
+  #     python -m search.ingest embed --docs 20000
+  #   docker compose -f deploy/docker-compose.yml --profile search run --rm search-api \
+  #     python -m search.ingest load --docs 20000
+  search-embedder:
+    profiles: [search]
+    build: ../demo-app
+    image: temupuffer-search:dev
+    command: ["uvicorn", "search.embedder_service:app", "--host", "0.0.0.0", "--port", "8091"]
+    restart: unless-stopped
+
+  search-api:
+    profiles: [search]
+    image: temupuffer-search:dev
+    environment: &search-env
+      TEMUPUFFER_URL: http://console:8080/api
+      TEMUPUFFER_API_KEY: ${TEMUPUFFER_API_KEY:-tpuf-dev-key}
+      SEARCH_NAMESPACE: arxiv
+      EMBEDDER_URL: http://search-embedder:8091
+      EMBEDDINGS_URI: s3://temupuffer-search/embeddings/minilm-128
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      SEARCH_API_URL: http://search-api:8090
+      SHARD_DIR: /tmp/arxiv
+    restart: unless-stopped
+    depends_on: [search-embedder, console]
+
+  search-ui:
+    profiles: [search]
+    build: ../demo-app/ui
+    image: temupuffer-search-ui:dev
+    environment:
+      SEARCH_API: search-api:8090
+    ports: ["${SEARCH_PORT:-3001}:8080"]
+    depends_on: [search-api]
+
+volumes:
+  minio-data:

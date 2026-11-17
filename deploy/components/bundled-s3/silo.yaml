@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: temupuffer-s3
+  labels: {app.kubernetes.io/name: temupuffer-s3, app.kubernetes.io/part-of: temupuffer}
+spec:
+  serviceName: temupuffer-s3
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: temupuffer-s3}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: temupuffer-s3, app.kubernetes.io/part-of: temupuffer}
+    spec:
+      containers:
+        - name: silo
+          # SILO, a maintained MinIO fork (MinIO stopped publishing images in 2025).
+          # Multi-arch, pinned by digest. temupuffer's startup self-test checks
+          # that it honours If-None-Match and If-Match.
+          image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z@sha256:635197cb9f36d01bee221d34d1c7d7960f6a95c48b0b6c01d99cd13bdae51a46
+          args: ["server", "/data", "--address", ":9000", "--console-address", ":9001"]
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_ACCESS_KEY_ID}}
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_SECRET_ACCESS_KEY}}
+          ports:
+            - {name: s3, containerPort: 9000}
+            - {name: console, containerPort: 9001}
+          readinessProbe:
+            httpGet: {path: /minio/health/ready, port: s3}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /minio/health/live, port: s3}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+  # Uses the cluster's default StorageClass (local-path on a stock K3s).
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temupuffer-s3
+  labels: {app.kubernetes.io/name: temupuffer-s3, app.kubernetes.io/part-of: temupuffer}
+spec:
+  selector: {app.kubernetes.io/name: temupuffer-s3}
+  ports:
+    - {name: s3, port: 9000, targetPort: s3}
+    - {name: console, port: 9001, targetPort: console}

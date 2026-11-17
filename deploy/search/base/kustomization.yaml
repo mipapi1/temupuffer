@@ -1,0 +1,11 @@
+# temupuffer search (demo-app/): API, embedder and UI. The ingest Job templates live in
+# demo-app/search/jobs and are started on demand: make search-embed / make search-load,
+# or the Data card on the Scale page (the API creates them, see rbac.yaml).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - config.yaml
+  - embedder.yaml
+  - rbac.yaml
+  - api.yaml
+  - ui.yaml

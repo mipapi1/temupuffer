@@ -1,0 +1,152 @@
+[
+  {
+    "name": "Memory Sequential Read, 1 thread",
+    "perTiB": 0.0005,
+    "commit1y": 0.0003,
+    "spot": 0.0003
+  },
+  {
+    "name": "GPU Memory Sequential Read (B200)",
+    "perTiB": 0.0005,
+    "commit1y": 0.0004,
+    "spot": 0.0004
+  },
+  {
+    "name": "Memory Sequential Read, all cores",
+    "perTiB": 0.004,
+    "commit1y": 0.002,
+    "spot": 0.002
+  },
+  {
+    "name": "Memory Random Read (64 B), all cores",
+    "perTiB": 0.004,
+    "commit1y": 0.002,
+    "spot": 0.002
+  },
+  {
+    "name": "SSD Sequential Read (8 KiB)",
+    "perTiB": 0.2,
+    "commit1y": 0.1,
+    "spot": 0.09
+  },
+  {
+    "name": "SSD Random Read (8 KiB)",
+    "perTiB": 0.2,
+    "commit1y": 0.1,
+    "spot": 0.09
+  },
+  {
+    "name": "Network Same-Zone (32 KiB)",
+    "perTiB": 0.2,
+    "commit1y": 0.2,
+    "spot": 0.1
+  },
+  {
+    "name": "Blob Storage, Regional Read (8 MiB)",
+    "perTiB": 0.3,
+    "commit1y": 0.2,
+    "spot": 0.2
+  },
+  {
+    "name": "HDD Sequential Read (8 KiB)",
+    "perTiB": 0.4,
+    "commit1y": 0.3,
+    "spot": 0.1
+  },
+  {
+    "name": "Network Disk, Zonal Sequential Read (8 KiB)",
+    "perTiB": 0.5,
+    "commit1y": 0.3,
+    "spot": 0.3
+  },
+  {
+    "name": "Network Disk, Zonal Random Read (8 KiB)",
+    "perTiB": 0.5,
+    "commit1y": 0.3,
+    "spot": 0.3
+  },
+  {
+    "name": "Network Disk, Zonal, HDD Sequential Read (8 KiB)",
+    "perTiB": 0.5,
+    "commit1y": 0.4,
+    "spot": 0.3
+  },
+  {
+    "name": "Network Disk, Zonal, HDD Random Read (256 KiB)",
+    "perTiB": 0.5,
+    "commit1y": 0.4,
+    "spot": 0.3
+  },
+  {
+    "name": "Network Disk, Regional Sequential Read (8 KiB)",
+    "perTiB": 0.6,
+    "commit1y": 0.4,
+    "spot": 0.4
+  },
+  {
+    "name": "Network Disk, Regional Random Read (8 KiB)",
+    "perTiB": 0.6,
+    "commit1y": 0.4,
+    "spot": 0.4
+  },
+  {
+    "name": "Network Disk, Regional, HDD Sequential Read (8 KiB)",
+    "perTiB": 0.7,
+    "commit1y": 0.5,
+    "spot": 0.5
+  },
+  {
+    "name": "Network Disk, Regional, HDD Random Read (256 KiB)",
+    "perTiB": 0.7,
+    "commit1y": 0.5,
+    "spot": 0.5
+  },
+  {
+    "name": "HDD Random Read (256 KiB)",
+    "perTiB": 0.8,
+    "commit1y": 0.6,
+    "spot": 0.2
+  },
+  {
+    "name": "Blob Storage, Zonal Read (8 MiB)",
+    "perTiB": 0.9,
+    "commit1y": 0.8,
+    "spot": 0.8
+  },
+  {
+    "name": "Blob Storage, Zonal Read (128 KiB)",
+    "perTiB": 2,
+    "commit1y": 2,
+    "spot": 2
+  },
+  {
+    "name": "Blob Storage, Regional Read (128 KiB)",
+    "perTiB": 4,
+    "commit1y": 4,
+    "spot": 3
+  },
+  {
+    "name": "Warehouse Query",
+    "perTiB": 5,
+    "commit1y": 5,
+    "spot": 5
+  },
+  {
+    "name": "Network Cross-Zone (64 KiB)",
+    "perTiB": 10,
+    "commit1y": 10,
+    "spot": 10
+  },
+  {
+    "name": "Network Cross-Region",
+    "perTiB": 20,
+    "commit1y": 20,
+    "spot": 20
+  },
+  {
+    "name": "Network Internet Egress",
+    "perTiB": 100,
+    "commit1y": 100,
+    "spot": 100
+  }
+]

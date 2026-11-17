@@ -1,0 +1,286 @@
+@import "tailwindcss";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
+/*
+  The temupuffer console's tokens, so the two apps read as one product.
+  Coral = interactive. Amber = not indexed yet. Teal = indexed.
+  Chart fills are their own validated steps per theme (dataviz validator: all checks pass).
+*/
+:root {
+  --bg: #fbf5ea;
+  --surface: #fffdf8;
+  --surface-2: #f6eddd;
+  --line: #e9dcc4;
+  --text: #14213d;
+  --muted: #58607a;
+  --faint: #8b8fa3;
+  --accent: #d6336c;
+  --on-accent: #ffffff;
+  --accent-soft: #fde2ec;
+  --amber: #c98314;
+  --amber-soft: #fbefd9;
+  --teal: #13917f;
+  --teal-soft: #d8f2ee;
+  --red: #c42b2b;
+  --red-soft: #fde3df;
+  --chart-teal: #13917f;
+  --chart-amber: #c98314;
+  --ink: #e9dcc4;
+  --pop: #ecd3bc;
+  --accent-deep: #a11f4e;
+  --bubble: rgba(20, 33, 61, 0.05);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111113;
+    --surface: #19191c;
+    --surface-2: #222226;
+    --line: #313136;
+    --text: #f0efeb;
+    --muted: #a9a9b0;
+    --faint: #76767e;
+    --accent: #ff8fb1;
+    --on-accent: #2a0a16;
+    --accent-soft: #3a1e29;
+    --amber: #e8a83f;
+    --amber-soft: #3a2f1c;
+    --teal: #2cc0aa;
+    --teal-soft: #163631;
+    --red: #ff7b72;
+    --red-soft: #3d1f22;
+    --chart-teal: #22a893;
+    --chart-amber: #c4862a;
+    --ink: #313136;
+    --pop: #050506;
+    --accent-deep: #c4527a;
+    --bubble: rgba(255, 255, 255, 0.035);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #111113;
+  --surface: #19191c;
+  --surface-2: #222226;
+  --line: #313136;
+  --text: #f0efeb;
+  --muted: #a9a9b0;
+  --faint: #76767e;
+  --accent: #ff8fb1;
+  --on-accent: #2a0a16;
+  --accent-soft: #3a1e29;
+  --amber: #e8a83f;
+  --amber-soft: #3a2f1c;
+  --teal: #2cc0aa;
+  --teal-soft: #163631;
+  --red: #ff7b72;
+  --red-soft: #3d1f22;
+  --chart-teal: #22a893;
+  --chart-amber: #c4862a;
+  --ink: #313136;
+  --pop: #050506;
+  --accent-deep: #c4527a;
+  --bubble: rgba(255, 255, 255, 0.035);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-ink: var(--ink);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-teal: var(--teal);
+  --color-teal-soft: var(--teal-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --font-sans: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Type scale. One monospace face everywhere (JetBrains Mono 400 / 500 / 700): headings use 700, and
+   no negative tracking, which crowds a monospace. */
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+h2 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   "Reef": the playful layer. Sand (light) / near-black (dark), candy cards
+   with a raised bottom, pill buttons that sink when pressed, bubbles behind everything, a wave
+   under the header and a puffer that bobs. Amber/teal keep their meaning.
+   --------------------------------------------------------------------------- */
+body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(circle at 8% 18%, var(--bubble) 0 46px, transparent 47px),
+    radial-gradient(circle at 12% 30%, var(--bubble) 0 14px, transparent 15px),
+    radial-gradient(circle at 92% 12%, var(--bubble) 0 70px, transparent 71px),
+    radial-gradient(circle at 86% 26%, var(--bubble) 0 18px, transparent 19px),
+    radial-gradient(circle at 78% 82%, var(--bubble) 0 54px, transparent 55px),
+    radial-gradient(circle at 18% 88%, var(--bubble) 0 28px, transparent 29px),
+    radial-gradient(circle at 50% 60%, var(--bubble) 0 9px, transparent 10px);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+h1 {
+  text-decoration: underline wavy var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+  text-decoration-skip-ink: none;
+  padding-bottom: 6px;
+}
+
+/* Candy cards: a soft sand edge, round corners and a raised bottom, no black outline.
+   The Card/Panel primitives, plus raw cards built the same way. */
+.sticker,
+section.rounded-xl.border.bg-surface,
+section.rounded-lg.border.bg-surface {
+  border: 2px solid var(--line) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 5px 0 var(--pop);
+  background: var(--surface);
+}
+
+/* Pill buttons that sink when pressed. */
+.btn-pop {
+  border: 2px solid var(--line) !important;
+  border-radius: 999px !important;
+  padding-left: 0.95rem !important;
+  padding-right: 0.95rem !important;
+  box-shadow: 0 3px 0 var(--pop);
+  transition: transform 90ms ease, box-shadow 90ms ease, background-color 120ms ease;
+}
+.btn-pop.bg-accent {
+  border-color: transparent !important;
+  box-shadow: 0 3px 0 var(--accent-deep);
+}
+.btn-pop:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--pop);
+  opacity: 1;
+}
+.btn-pop.bg-accent:hover:not(:disabled) {
+  box-shadow: 0 4px 0 var(--accent-deep);
+}
+.btn-pop:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--pop) !important;
+}
+
+/* Text inputs get the same chunky outline. */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input:not([type]),
+select,
+textarea {
+  border-width: 2px !important;
+  border-color: var(--line);
+  border-radius: 10px !important;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+}
+
+/* The header wave (search) and side bar edge (console). */
+.reef-wave {
+  position: relative;
+  border-bottom: 0 !important;
+}
+.reef-wave::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -9px;
+  height: 10px;
+  background: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M0 5 Q10 0 20 5 T40 5' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E") repeat-x 0 0 / 40px 10px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10'%3E%3Cpath d='M0 5 Q10 0 20 5 T40 5' fill='none' stroke='black' stroke-width='2.5'/%3E%3C/svg%3E") repeat-x 0 0 / 40px 10px;
+  pointer-events: none;
+}
+.reef-edge {
+  border-color: var(--line) !important;
+  border-width: 0 0 2px 0 !important;
+}
+@media (min-width: 768px) {
+  .reef-edge {
+    border-width: 0 2px 0 0 !important;
+  }
+}
+
+/* The puffer bobs, and puffs up when you poke it. */
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-2px) rotate(3deg); }
+}
+@keyframes puff {
+  0% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.28) rotate(-8deg); }
+  70% { transform: scale(1.18) rotate(6deg); }
+  100% { transform: scale(1.22) rotate(0); }
+}
+.puffer-bob {
+  animation: bob 3.2s ease-in-out infinite;
+  transform-origin: 50% 60%;
+}
+a:hover .puffer-bob,
+div:hover > .puffer-bob {
+  animation: puff 420ms cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+}

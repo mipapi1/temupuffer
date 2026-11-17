@@ -1,0 +1,10 @@
+# Applied by ./deploy.sh k3s, which builds and pushes the image and pins its digest here.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: napkin-math
+resources:
+  - app.yaml
+images:
+  - name: napkin-math-ui
+    newName: git.agathla.com/papi/napkin-math-ui
+    newTag: latest

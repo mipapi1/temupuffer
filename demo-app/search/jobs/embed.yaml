@@ -1,0 +1,47 @@
+# Embed DOCS arXiv papers into s3://temupuffer-search/embeddings (resumable).
+# An Indexed Job: 3 pods, each takes whole dataset shards (shard % 3 == index),
+# spread one per node. Started by `make search-embed DOCS=...`, which fills in __DOCS__.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: search-embed
+  labels: {app.kubernetes.io/name: search-embed, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  completionMode: Indexed
+  completions: 3
+  parallelism: 3
+  backoffLimitPerIndex: 3
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: search-embed, app.kubernetes.io/part-of: temupuffer-search}
+    spec:
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {app.kubernetes.io/name: search-embed}
+      containers:
+        - name: embed
+          image: temupuffer-search
+          command: ["python", "-m", "search.ingest", "embed", "--docs", "__DOCS__", "--workers", "3", "--tmp", "/shards"]
+          envFrom:
+            - configMapRef: {name: search-config}
+            - secretRef: {name: search-secrets}
+          env:
+            - {name: EMBED_THREADS, value: "2"}   # = the CPU limit below; more threads just get throttled
+          # The CPU limit matters: without it each pod takes every idle core (the model
+          # uses all cores it sees) and starves the rest of the cluster. 2 of 4 cores per node.
+          resources:
+            requests: {cpu: 1000m, memory: 1Gi}
+            limits: {cpu: "2", memory: 3Gi}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts:
+            - {name: shards, mountPath: /shards}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: shards, emptyDir: {sizeLimit: 4Gi}}   # up to 4 shard files of ~270 MB
+        - {name: tmp, emptyDir: {sizeLimit: 256Mi}}

@@ -1,0 +1,7 @@
+.venv
+.cache
+ui
+tests
+**/__pycache__
+.env
+.env.*

@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Don't overcomplicate",
+    "body": "If you are basing your calculation on more than 6 assumptions, you're likely making it harder than it should be."
+  },
+  {
+    "title": "Keep the units",
+    "body": "They're good checksumming. Wolframalpha has terrific support if you need a hand in converting e.g. KiB to TiB."
+  },
+  {
+    "title": "Calculate with exponents",
+    "body": "A lot of back-of-the-envelope calculations are done with just coefficients and exponents, e.g. `c * 10^e`. Your goal is to get within an order of magnitude right--that's just `e`. `c` matters a lot less. Only worrying about single-digit coefficients and exponents makes it much easier on a napkin (not to speak of all the zeros you avoid writing)."
+  },
+  {
+    "title": "Perform Fermi decomposition",
+    "body": "Write down things you can guess at until you can start to hint at an answer. When you want to know the cost of storage for logging, you're going to want to know how big a log line is, how many of those you have per second, what that costs, and so on."
+  }
+]

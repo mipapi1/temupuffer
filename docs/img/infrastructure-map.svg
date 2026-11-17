@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 630" width="1000" height="630" role="img" aria-label="temupuffer infrastructure map: Traefik routes the console and API hosts into namespace temupuffer, where nginx sends each namespace to one query pod by consistent hash; query pods and the indexer read and write the SILO bucket; an optional second stack uses Azure Blob Storage.">
+  <title>temupuffer infrastructure map</title>
+  <style>
+    svg { --bg:#f3f6f8; --panel:#ffffff; --fg:#10202b; --muted:#576a78; --line:#cbd6df;
+          --store:#1f6795; --store-soft:#dbe9f3; --idx:#13806f; --idx-soft:#d3eee8; }
+    @media (prefers-color-scheme: dark) {
+      svg { --bg:#0c141b; --panel:#121d27; --fg:#e2ebf2; --muted:#93a6b6; --line:#263746;
+            --store:#5fb0e0; --store-soft:#16324a; --idx:#4cc5ae; --idx-soft:#133b35; }
+    }
+    text { fill: var(--fg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .t  { font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; }
+    .s  { font-size: 11px; fill: var(--muted); }
+    .xs { font-size: 10px; fill: var(--muted); }
+    .hd { font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; fill: var(--muted); letter-spacing: .06em; }
+    .c-store { fill: var(--store); }
+    .page { fill: var(--panel); }
+    .box { fill: var(--panel); stroke: var(--fg); stroke-width: 1.3; }
+    .k8s { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 6 4; }
+    .cluster { fill: var(--bg); stroke: var(--muted); stroke-width: 1.4; }
+    .store { fill: var(--store-soft); stroke: var(--store); stroke-width: 1.6; }
+    .idx { fill: var(--idx-soft); stroke: var(--idx); stroke-width: 1.5; }
+    .pill { fill: var(--bg); stroke: var(--muted); stroke-width: 1.2; }
+    .cache { fill: var(--bg); stroke: var(--muted); stroke-width: 1; }
+    .ar { stroke: var(--fg); stroke-width: 1.5; fill: none; }
+    .ar-s { stroke: var(--store); stroke-width: 1.8; fill: none; }
+    .ar-d { stroke: var(--muted); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+    .head { fill: var(--fg); } .head-s { fill: var(--store); } .head-d { fill: var(--muted); }
+  </style>
+  <defs>
+    <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ms" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-s" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="md" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-d" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1000" height="630" rx="8"/>
+
+  <!-- clients -->
+  <text class="hd" x="8" y="44">CLIENTS</text>
+  <rect class="box" x="8" y="80" width="130" height="62" rx="5"/>
+  <text class="t" x="20" y="102">browser</text>
+  <text class="xs" x="20" y="120">temupuffer</text>
+  <text class="xs" x="20" y="133">.example.com</text>
+  <rect class="box" x="8" y="154" width="130" height="62" rx="5"/>
+  <text class="t" x="20" y="176">SDK · load.py</text>
+  <text class="xs" x="20" y="194">temupuffer-api</text>
+  <text class="xs" x="20" y="207">.example.com</text>
+  <line class="ar" x1="138" y1="109" x2="150" y2="109" marker-end="url(#m)"/>
+  <line class="ar" x1="138" y1="169" x2="150" y2="169" marker-end="url(#m)"/>
+
+  <!-- Traefik -->
+  <rect class="box" x="152" y="68" width="120" height="240" rx="5"/>
+  <text class="t" x="164" y="92">Traefik</text>
+  <text class="xs" x="164" y="112">Ingress</text>
+  <text class="xs" x="164" y="140">DNS: &lt;private IP&gt;</text>
+  <text class="xs" x="164" y="190">temupuffer.*</text>
+  <text class="xs" x="172" y="204">→ console</text>
+  <text class="xs" x="164" y="230">temupuffer-api.*</text>
+  <text class="xs" x="172" y="244">→ router</text>
+  <line class="ar" x1="272" y1="109" x2="308" y2="109" marker-end="url(#m)"/>
+  <line class="ar" x1="272" y1="169" x2="308" y2="169" marker-end="url(#m)"/>
+
+  <!-- cluster -->
+  <rect class="cluster" x="286" y="24" width="708" height="466" rx="8"/>
+  <text class="hd" x="298" y="44">K3S CLUSTER · k3s-prod01, prod02, prod03</text>
+
+  <!-- ns temupuffer -->
+  <rect class="k8s" x="298" y="56" width="492" height="304" rx="6"/>
+  <text class="hd" x="310" y="74">NAMESPACE temupuffer</text>
+
+  <rect class="box" x="310" y="84" width="468" height="50" rx="4"/>
+  <text class="t" x="322" y="104">console · nginx + React UI</text>
+  <text class="xs" x="322" y="122">Storage picker: /b/silo/api, /b/azure/api · prod01</text>
+
+  <rect class="box" x="310" y="144" width="468" height="50" rx="4"/>
+  <text class="t" x="322" y="164">router ×2 · nginx (console image, :8081)</text>
+  <text class="xs" x="322" y="182">API traffic for SDKs and scripts · prod01, prod02</text>
+
+  <rect class="pill" x="310" y="208" width="468" height="28" rx="14"/>
+  <text class="s" x="324" y="226">console + router: hash(namespace) consistent → same pod</text>
+  <line class="ar" x1="740" y1="194" x2="740" y2="206" marker-end="url(#m)"/>
+
+  <rect class="box" x="310" y="252" width="148" height="96" rx="4"/>
+  <text class="t" x="322" y="272">query-0 · prod03</text>
+  <rect class="cache" x="320" y="282" width="62" height="22" rx="2"/><text class="xs" x="327" y="297">mem 256M</text>
+  <rect class="cache" x="388" y="282" width="60" height="22" rx="2"/><text class="xs" x="397" y="297">disk 1G</text>
+  <text class="xs" x="322" y="322">StatefulSet</text>
+  <text class="xs" x="322" y="336">writes + queries</text>
+
+  <rect class="box" x="470" y="252" width="148" height="96" rx="4"/>
+  <text class="t" x="482" y="272">query-1 · prod02</text>
+  <rect class="cache" x="480" y="282" width="62" height="22" rx="2"/><text class="xs" x="487" y="297">mem 256M</text>
+  <rect class="cache" x="548" y="282" width="60" height="22" rx="2"/><text class="xs" x="557" y="297">disk 1G</text>
+  <text class="xs" x="482" y="322">no volumes:</text>
+  <text class="xs" x="482" y="336">cache only</text>
+
+  <rect class="idx" x="630" y="252" width="148" height="96" rx="4"/>
+  <text class="t" x="642" y="272">indexer · prod01</text>
+  <text class="xs" x="642" y="292">1 replica · :8081</text>
+  <text class="xs" x="642" y="308">lease in queue.json</text>
+  <text class="xs" x="642" y="324">builds segments,</text>
+  <text class="xs" x="642" y="338">compacts, GCs</text>
+
+  <line class="ar" x1="384" y1="236" x2="384" y2="250" marker-end="url(#m)"/>
+  <line class="ar" x1="544" y1="236" x2="544" y2="250" marker-end="url(#m)"/>
+
+  <!-- ns turbopuffer : SILO -->
+  <rect class="k8s" x="802" y="56" width="180" height="304" rx="6"/>
+  <text class="hd" x="812" y="74">NS turbopuffer</text>
+  <rect class="store" x="812" y="84" width="160" height="264" rx="4"/>
+  <text class="t" x="824" y="106">SILO · prod01</text>
+  <text class="xs" x="824" y="124">S3-compatible</text>
+  <text class="xs" x="824" y="138">API :9000</text>
+  <text class="xs" x="824" y="158">PVC silo-data</text>
+  <text class="xs" x="824" y="172">Longhorn · 5 Gi</text>
+  <text class="s c-store" x="824" y="200">bucket temupuffer</text>
+  <text class="xs" x="824" y="218">queue.json</text>
+  <text class="xs" x="824" y="234">ns/&lt;name&gt;/meta.json</text>
+  <text class="xs" x="824" y="250">ns/&lt;name&gt;/wal/</text>
+  <text class="xs" x="824" y="266">ns/&lt;name&gt;/index/</text>
+  <text class="xs" x="824" y="296">the only durable</text>
+  <text class="xs" x="824" y="310">state in the stack</text>
+  <line class="ar-s" x1="778" y1="300" x2="810" y2="300" marker-end="url(#ms)"/>
+
+  <!-- ns temupuffer-azure -->
+  <rect class="k8s" x="298" y="376" width="492" height="100" rx="6"/>
+  <text class="hd" x="310" y="394">NAMESPACE temupuffer-azure · optional</text>
+  <rect class="box" x="310" y="406" width="468" height="56" rx="4"/>
+  <text class="t" x="322" y="428">query ×2 + indexer · same image, same YAML</text>
+  <text class="xs" x="322" y="448">STORE=azure · credentials in Secret temupuffer-azure</text>
+
+  <!-- console → azure stack, cross-namespace DNS -->
+  <polyline class="ar-d" points="310,124 304,124 304,434 308,434" marker-end="url(#md)"/>
+
+  <!-- azure, outside the cluster -->
+  <polyline class="ar-s" points="778,434 892,434 892,508" marker-end="url(#ms)"/>
+  <text class="xs c-store" x="800" y="426">HTTPS</text>
+  <rect class="store" x="802" y="510" width="180" height="96" rx="4"/>
+  <text class="t" x="814" y="532">Azure Blob Storage</text>
+  <text class="xs" x="814" y="550">outside the cluster</text>
+  <text class="s c-store" x="814" y="572">container temupuffer</text>
+  <text class="xs" x="814" y="590">same key layout</text>
+
+  <!-- notes -->
+  <text class="hd" x="298" y="516">STATE CHECK</text>
+  <text class="s" x="298" y="538">Delete every pod and nothing is lost: durable state is only in blue.</text>
+  <text class="s" x="298" y="558">Pods keep only a cache: memory, then a 2 Gi emptyDir each.</text>
+  <text class="s" x="298" y="578">Writes are durable once the WAL PUT succeeds (If-None-Match: *).</text>
+  <text class="s" x="298" y="598">Dashed line: console → second stack by full in-cluster DNS name.</text>
+</svg>

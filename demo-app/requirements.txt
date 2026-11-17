@@ -1,0 +1,8 @@
+fastapi==0.162.5
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+fastembed==0.9.1
+onnxruntime==1.31.1
+numpy==2.5.4
+pyarrow==26.0.1
+turbopuffer==3.1.0

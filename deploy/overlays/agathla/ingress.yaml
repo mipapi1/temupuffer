@@ -1,0 +1,22 @@
+# Console + API on separate hostnames, on the homelab's Traefik.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temupuffer
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: temupuffer.agathla.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: temupuffer-console, port: {name: http}}}
+    - host: temupuffer-api.agathla.com
+      http:
+        paths:
+          # The router, not the query Service: it sends each namespace to one
+          # query pod (deploy/components/api-router).
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: temupuffer-router, port: {name: http}}}

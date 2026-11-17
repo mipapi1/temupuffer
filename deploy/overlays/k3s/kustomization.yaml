@@ -1,0 +1,24 @@
+# Generic K3s install: everything in one namespace, including its own S3 (SILO),
+# with the console exposed through the cluster's default ingress (Traefik on K3s).
+#
+# Easiest:   ./deploy/k3s.sh install            (builds images, creates secrets, applies this)
+# By hand:   create Secrets temupuffer-s3 and temupuffer-api (see deploy/README.md),
+#            make the images available, then: kubectl apply -k deploy/overlays/k3s
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: temupuffer
+resources:
+  - namespace.yaml
+  - ../../base
+components:
+  - ../../components/bundled-s3
+  - ../../components/console-ingress
+images:
+  # Built locally and imported into K3s by deploy/k3s.sh. Use --registry to
+  # pull from a registry instead (the script rewrites these).
+  - name: temupuffer-db
+    newName: temupuffer/temupuffer-db
+    newTag: "0.1.7"
+  - name: temupuffer-console
+    newName: temupuffer/temupuffer-console
+    newTag: "0.1.7"

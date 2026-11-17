@@ -1,0 +1,20 @@
+[
+  {
+    "id": "reads",
+    "name": "Reads",
+    "regionalPerMillion": 0.4,
+    "zonalPerMillion": 0.1
+  },
+  {
+    "id": "writes-lists",
+    "name": "Writes, Lists",
+    "regionalPerMillion": 5,
+    "zonalPerMillion": 1
+  },
+  {
+    "id": "kms-encryption",
+    "name": "KMS Encryption",
+    "regionalPerMillion": 3,
+    "zonalPerMillion": 3
+  }
+]

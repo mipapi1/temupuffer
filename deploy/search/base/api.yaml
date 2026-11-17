@@ -1,0 +1,44 @@
+# The search API. One replica on purpose: live latency stats, the row-count
+# history and load-test results are kept in memory (it's a demo, not a product).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-api
+  labels: {app.kubernetes.io/name: search-api, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: search-api}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: search-api, app.kubernetes.io/part-of: temupuffer-search}
+    spec:
+      serviceAccountName: search-api   # can create/delete Jobs in this namespace (rbac.yaml)
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: api
+          image: temupuffer-search
+          ports: [{name: http, containerPort: 8090}]
+          envFrom:
+            - configMapRef: {name: search-config}
+            - secretRef: {name: search-secrets}
+          env:
+            - name: POD_NAME           # Jobs started from the UI use this pod's image
+              valueFrom: {fieldRef: {fieldPath: metadata.name}}
+          readinessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /healthz, port: http}, periodSeconds: 20, timeoutSeconds: 5}
+          resources:
+            requests: {cpu: 200m, memory: 256Mi}
+            limits: {memory: 768Mi}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 64Mi}}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-api
+  labels: {app.kubernetes.io/name: search-api, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  selector: {app.kubernetes.io/name: search-api}
+  ports: [{name: http, port: 8090, targetPort: http}]

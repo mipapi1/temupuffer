@@ -1,0 +1,13 @@
+# Bundled object storage: a single SILO (MinIO-compatible) pod with a PVC, for
+# clusters that don't already have S3. temupuffer creates its bucket on startup.
+# Credentials come from Secret temupuffer-s3 (deploy/k3s.sh generates them).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - silo.yaml
+configMapGenerator:
+  - name: temupuffer-s3-endpoint
+    literals:
+      - S3_ENDPOINT=http://temupuffer-s3:9000
+    options:
+      disableNameSuffixHash: true

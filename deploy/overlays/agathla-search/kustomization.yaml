@@ -1,0 +1,27 @@
+# The author's homelab: temupuffer search in its own namespace, talking to the
+# SILO temupuffer stack through its API router. Secrets come from create-secrets.sh.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: temupuffer-search
+resources:
+  - namespace.yaml
+  - ../../search/base
+  - ingress.yaml
+patches:
+  # The UI is only reachable on the home network (private DNS), so the Data card's
+  # buttons are on here.
+  - target: {kind: ConfigMap, name: search-config}
+    patch: |-
+      - {op: replace, path: /data/ADMIN_ACTIONS, value: "1"}
+      # 1M papers as two 500k namespaces: one 1M namespace (~5 GiB parsed) doesn't fit one
+      # query pod. The names hash to different pods (arxiv-a -> query-0, arxiv-b -> query-1,
+      # checked with X-Temupuffer-Upstream on 2026-11-13). Docs go to shard id % 2.
+      - {op: add, path: /data/TEMUPUFFER_NAMESPACES, value: "arxiv-a,arxiv-b"}
+images:
+  # Pinned by digest (multi-arch manifest lists). After `make search-images`, update from its output.
+  - name: temupuffer-search
+    newName: git.agathla.com/papi/temupuffer-search
+    digest: sha256:5fd0b1884598b5885ef695ea100127af9d27df58a579b1c045d46a964322e70a   # 0.2.5 (sharded namespaces)
+  - name: temupuffer-search-ui
+    newName: git.agathla.com/papi/temupuffer-search-ui
+    digest: sha256:d8ca01cddba3a911173cdaa9075f3b192b6c3025e7d4b62cb889841663fa8ec8   # 0.2.12 (Reef, near-black dark, name 'temupuffer-search')

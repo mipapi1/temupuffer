@@ -1,0 +1,78 @@
+# The indexer: folds WAL entries into segments. Its own Deployment, like
+# turbopuffer's separate indexing nodes. More replicas are safe (queue.json
+# leases + manifest CAS), they just take different namespaces.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temupuffer-indexer
+  labels: {app.kubernetes.io/name: temupuffer-indexer, app.kubernetes.io/part-of: temupuffer}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: temupuffer-indexer}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: temupuffer-indexer, app.kubernetes.io/part-of: temupuffer}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: indexer
+          image: temupuffer-db
+          command: ["python", "-m", "indexer.main"]
+          ports:
+            - {name: http, containerPort: 8081}
+          envFrom:
+            - configMapRef: {name: temupuffer-config}
+          env:
+            - name: NODE_ID
+              valueFrom: {fieldRef: {fieldPath: metadata.name}}
+            - name: S3_ENDPOINT
+              valueFrom: {configMapKeyRef: {name: temupuffer-s3-endpoint, key: S3_ENDPOINT}}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_ACCESS_KEY_ID}}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_SECRET_ACCESS_KEY}}
+            - name: API_KEY
+              valueFrom: {secretKeyRef: {name: temupuffer-api, key: API_KEY}}
+            - name: CACHE_DIR
+              value: /cache
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 5
+          startupProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 2
+            failureThreshold: 100
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {memory: 2Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: cache, mountPath: /cache}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: cache
+          emptyDir: {sizeLimit: 2Gi}
+        - name: tmp
+          emptyDir: {sizeLimit: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temupuffer-indexer
+  labels: {app.kubernetes.io/name: temupuffer-indexer, app.kubernetes.io/part-of: temupuffer}
+spec:
+  clusterIP: None
+  selector: {app.kubernetes.io/name: temupuffer-indexer}
+  ports:
+    - {name: http, port: 8081, targetPort: http}

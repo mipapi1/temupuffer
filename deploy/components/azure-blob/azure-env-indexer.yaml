@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temupuffer-indexer
+spec:
+  template:
+    spec:
+      containers:
+        - name: indexer
+          envFrom:
+            # envFrom has no merge key, so a patch replaces the whole list: keep the config map.
+            - configMapRef: {name: temupuffer-config}
+            - secretRef: {name: temupuffer-azure}
+          env:
+            - name: STORE
+              value: azure
+            - {name: S3_ENDPOINT, $patch: delete}
+            - {name: AWS_ACCESS_KEY_ID, $patch: delete}
+            - {name: AWS_SECRET_ACCESS_KEY, $patch: delete}

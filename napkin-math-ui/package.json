@@ -1,0 +1,36 @@
+{
+  "name": "napkin-math-ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Interactive napkin-math estimator with real cloud pricing",
+  "scripts": {
+    "start": "npm install --no-audit --no-fund --silent && vite --open",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "sync:reference": "node scripts/sync-reference.ts",
+    "fetch:prices": "node scripts/fetch-prices.ts",
+    "fetch:aws": "node scripts/fetch-prices.ts aws",
+    "fetch:azure": "node scripts/fetch-prices.ts azure",
+    "fetch:gcp": "node scripts/fetch-prices.ts gcp",
+    "test": "node --test scripts/engine.test.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "dependencies": {
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
+  }
+}

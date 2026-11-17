@@ -1,0 +1,263 @@
+[
+  {
+    "id": "cpu",
+    "group": null,
+    "name": "CPU",
+    "amount": "1 vCPU",
+    "monthly": 30,
+    "commit1y": 20,
+    "spot": 15
+  },
+  {
+    "id": "gpu-b200",
+    "group": null,
+    "name": "GPU (B200)",
+    "amount": "1",
+    "monthly": 10000,
+    "commit1y": 8000,
+    "spot": 7000
+  },
+  {
+    "id": "memory",
+    "group": null,
+    "name": "Memory",
+    "amount": "1 GB",
+    "monthly": 2.5,
+    "commit1y": 2,
+    "spot": 1
+  },
+  {
+    "id": "storage-warehouse-storage",
+    "group": "Storage",
+    "name": "Warehouse Storage",
+    "amount": "1 GB",
+    "monthly": 0.02,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-blob-storage-regional",
+    "group": "Storage",
+    "name": "Blob Storage, Regional",
+    "amount": "1 GB",
+    "monthly": 0.02,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-blob-storage-zonal",
+    "group": "Storage",
+    "name": "Blob Storage, Zonal",
+    "amount": "1 GB",
+    "monthly": 0.1,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-zonal-hdd",
+    "group": "Storage",
+    "name": "Network Disk, Zonal, HDD",
+    "amount": "1 GB",
+    "monthly": 0.04,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-ssd",
+    "group": "Storage",
+    "name": "SSD",
+    "amount": "1 GB",
+    "monthly": 0.15,
+    "commit1y": 0.1,
+    "spot": 0.08
+  },
+  {
+    "id": "storage-ssd-storage-optimized",
+    "group": "Storage",
+    "name": "SSD, storage-optimized",
+    "amount": "1 GB",
+    "monthly": 0.05,
+    "commit1y": null,
+    "spot": 0.01
+  },
+  {
+    "id": "storage-hdd",
+    "group": "Storage",
+    "name": "HDD",
+    "amount": "1 GB",
+    "monthly": 0.01,
+    "commit1y": null,
+    "spot": 0.004
+  },
+  {
+    "id": "storage-network-disk-regional-hdd",
+    "group": "Storage",
+    "name": "Network Disk, Regional, HDD",
+    "amount": "1 GB",
+    "monthly": 0.08,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-zonal",
+    "group": "Storage",
+    "name": "Network Disk, Zonal",
+    "amount": "1 GB",
+    "monthly": 0.1,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-regional",
+    "group": "Storage",
+    "name": "Network Disk, Regional",
+    "amount": "1 GB",
+    "monthly": 0.2,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-zonal-iops",
+    "group": "Storage",
+    "name": "Network Disk, Zonal IOPS",
+    "amount": "1 IOPS",
+    "monthly": 0.005,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-regional-iops",
+    "group": "Storage",
+    "name": "Network Disk, Regional IOPS",
+    "amount": "1 IOPS",
+    "monthly": 0.01,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-zonal-throughput",
+    "group": "Storage",
+    "name": "Network Disk, Zonal Throughput",
+    "amount": "1 MiB/s",
+    "monthly": 0.04,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "storage-network-disk-regional-throughput",
+    "group": "Storage",
+    "name": "Network Disk, Regional Throughput",
+    "amount": "1 MiB/s",
+    "monthly": 0.08,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-same-zone",
+    "group": "Network",
+    "name": "Same-Zone",
+    "amount": "1 GB",
+    "monthly": 0,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-blob-storage-same-region",
+    "group": "Network",
+    "name": "Blob Storage, Same-Region",
+    "amount": "1 GB",
+    "monthly": 0,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-ingress",
+    "group": "Network",
+    "name": "Ingress",
+    "amount": "1 GB",
+    "monthly": 0,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-l4-load-balancer",
+    "group": "Network",
+    "name": "L4 Load Balancer",
+    "amount": "1 GB",
+    "monthly": 0.005,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-cross-zone",
+    "group": "Network",
+    "name": "Cross-Zone",
+    "amount": "1 GB",
+    "monthly": 0.01,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-cross-region",
+    "group": "Network",
+    "name": "Cross-Region",
+    "amount": "1 GB",
+    "monthly": 0.02,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "network-internet-egress",
+    "group": "Network",
+    "name": "Internet Egress",
+    "amount": "1 GB",
+    "monthly": 0.1,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "cdn-egress",
+    "group": null,
+    "name": "CDN Egress",
+    "amount": "1 GB",
+    "monthly": 0.08,
+    "commit1y": 0.06,
+    "spot": null
+  },
+  {
+    "id": "cdn-fill",
+    "group": null,
+    "name": "CDN Fill",
+    "amount": "1 GB",
+    "monthly": 0.01,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "logs-traces",
+    "group": null,
+    "name": "Logs/Traces",
+    "amount": "1 GB",
+    "monthly": 0.5,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "metrics-series",
+    "group": null,
+    "name": "Metrics (series)",
+    "amount": "1000",
+    "monthly": 20,
+    "commit1y": null,
+    "spot": null
+  },
+  {
+    "id": "kms-keys",
+    "group": null,
+    "name": "KMS Keys",
+    "amount": "1",
+    "monthly": 1,
+    "commit1y": null,
+    "spot": null
+  }
+]

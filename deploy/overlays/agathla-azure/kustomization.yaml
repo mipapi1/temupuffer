@@ -1,0 +1,29 @@
+# The author's homelab: a second temupuffer stack, on Azure Blob Storage, next
+# to the SILO one. Query nodes + indexer only; the console in namespace
+# temupuffer reaches it at temupuffer-query.temupuffer-azure.svc.cluster.local
+# and its sidebar "Storage" picker switches between the two.
+#
+# Secrets (made by `make homelab-apply` when .env.azure exists):
+#   temupuffer-azure  from .env.azure (connection string; never committed)
+#   temupuffer-api    a COPY of the key in namespace temupuffer (same key on both)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: temupuffer-azure
+resources:
+  - namespace.yaml
+  - ../../base
+components:
+  - ../../components/azure-blob
+  - ../../components/agathla-images
+patches:
+  # No console here: the one in namespace temupuffer serves both stacks.
+  - patch: |-
+      $patch: delete
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: temupuffer-console}
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata: {name: temupuffer-console}

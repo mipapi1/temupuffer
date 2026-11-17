@@ -1,0 +1,7 @@
+node_modules
+dist
+upstream
+.git
+deploy/k8s
+*.md
+!README.md

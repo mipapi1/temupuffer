@@ -1,0 +1,139 @@
+# Query nodes: stateless apart from the cache. Two replicas show that any node
+# can serve any namespace (Architecture docs).
+#
+# A StatefulSet only for its stable pod names (temupuffer-query-0, -1), not for
+# storage: the console's nginx hashes each namespace onto a ring of those names
+# (namespace affinity, see db/ui/backends.sh). A Deployment's random pod names
+# would move every namespace on each rollout. Changing `replicas` means
+# updating QUERY_RING in console.yaml (and the api-router component) too.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: temupuffer-query
+  labels: {app.kubernetes.io/name: temupuffer-query, app.kubernetes.io/part-of: temupuffer}
+spec:
+  replicas: 2
+  # Pod DNS names come from this headless Service:
+  # temupuffer-query-0.temupuffer-query-peers.<namespace>.svc.cluster.local
+  serviceName: temupuffer-query-peers
+  # Start and replace pods in parallel; they don't depend on each other.
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {app.kubernetes.io/name: temupuffer-query}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 1}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: temupuffer-query, app.kubernetes.io/part-of: temupuffer}
+    spec:
+      # Put the replicas on different K3s nodes, so losing a node loses one replica.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels: {app.kubernetes.io/name: temupuffer-query}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      terminationGracePeriodSeconds: 20
+      containers:
+        - name: query
+          image: temupuffer-db
+          command: ["python", "-m", "server.main"]
+          ports:
+            - {name: http, containerPort: 8080}
+          envFrom:
+            - configMapRef: {name: temupuffer-config}
+          env:
+            - name: NODE_ID
+              valueFrom: {fieldRef: {fieldPath: metadata.name}}
+            - name: S3_ENDPOINT
+              valueFrom: {configMapKeyRef: {name: temupuffer-s3-endpoint, key: S3_ENDPOINT}}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_ACCESS_KEY_ID}}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom: {secretKeyRef: {name: temupuffer-s3, key: AWS_SECRET_ACCESS_KEY}}
+            - name: API_KEY
+              valueFrom: {secretKeyRef: {name: temupuffer-api, key: API_KEY}}
+            - name: CACHE_DIR
+              value: /cache
+            # Overrides the ConfigMap's 256 MiB for query pods only (the indexer keeps it).
+            # The cap counts segment *file* bytes; a 100k-row arXiv namespace is ~390 MB of
+            # them, so at 256 MiB only 1 of its 4 segments stayed parsed and every query
+            # re-parsed the rest from disk.
+            - name: CACHE_MEMORY_BYTES
+              value: "805306368"   # 768 MiB
+          # /readyz only passes after the CAS self-test against object storage.
+          readinessProbe:
+            httpGet: {path: /readyz, port: http}
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 10
+            failureThreshold: 3
+          # Startup waits up to STARTUP_WAIT_S (180 s) for object storage, so
+          # give it that long before liveness checks start.
+          startupProbe:
+            httpGet: {path: /healthz, port: http}
+            periodSeconds: 2
+            failureThreshold: 100
+          # A cold load of a 100k-row namespace peaks at ~950 MiB. On 2026-11-13 the pod was
+          # OOMKilled at 1536Mi and again at 2560Mi: the memory cache (256 MiB) held 1 of 4
+          # segments, so 8 concurrent queries each re-parsed the other 3. Fixed by the
+          # CACHE_MEMORY_BYTES override above and single-flight loads (0.1.11). The request
+          # is the real working size, so the scheduler stops overcommitting the node.
+          resources:
+            requests: {cpu: 250m, memory: 1Gi}
+            limits: {memory: 2560Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: cache, mountPath: /cache}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        # The node cache. turbopuffer caches on NVMe; an emptyDir is our stand-in.
+        # It survives container restarts but not pod rescheduling, like a local SSD.
+        - name: cache
+          emptyDir: {sizeLimit: 2Gi}
+        - name: tmp
+          emptyDir: {sizeLimit: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temupuffer-query
+  labels: {app.kubernetes.io/name: temupuffer-query, app.kubernetes.io/part-of: temupuffer}
+spec:
+  selector: {app.kubernetes.io/name: temupuffer-query}
+  ports:
+    - {name: http, port: 8080, targetPort: http}
+---
+# Headless: DNS returns every pod IP (the console's cluster view uses it to ask
+# each query node for its own stats), and it gives each StatefulSet pod its own
+# DNS name (the routing ring uses those).
+apiVersion: v1
+kind: Service
+metadata:
+  name: temupuffer-query-peers
+  labels: {app.kubernetes.io/name: temupuffer-query, app.kubernetes.io/part-of: temupuffer}
+spec:
+  clusterIP: None
+  selector: {app.kubernetes.io/name: temupuffer-query}
+  ports:
+    - {name: http, port: 8080, targetPort: http}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: temupuffer-query
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: temupuffer-query}

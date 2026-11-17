@@ -1,0 +1,15 @@
+# Image pins for the homelab, shared by deploy/overlays/agathla (SILO) and
+# deploy/overlays/agathla-azure (Azure), so both stacks always run one version.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+# Images in Forgejo's registry, pinned by digest (multi-arch manifest lists:
+# linux/amd64 for the cluster, linux/arm64 for a Mac). After rebuilding, update
+# the digests from the build output.
+images:
+  - name: temupuffer-db
+    newName: git.agathla.com/papi/temupuffer-db
+    digest: sha256:201cc97d4a43b8fefc7cac25cbe2da22193c98473078e8d1353c7d9cc52b8fcf   # 0.1.11
+  - name: temupuffer-console
+    newName: git.agathla.com/papi/temupuffer-console
+    digest: sha256:2f1f910ca882c0fa3d31f5a824622adfc6827d4dbe3ff7fdd99ba6f6eaf39a2a   # 0.1.18 (New practice namespace button, write guard)
+

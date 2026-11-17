@@ -1,0 +1,21 @@
+# Tunables shared by query nodes and the indexer. Every key maps to a field in
+# db/temupuffer/config.py, which documents the turbopuffer value it stands in for.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temupuffer-config
+data:
+  S3_BUCKET: temupuffer
+  S3_REGION: us-east-1
+  WAL_MIN_GAP_S: "1"                      # turbopuffer: 1 WAL entry per second per namespace
+  BACKPRESSURE_MAX_UNINDEXED_ROWS: "20000" # turbopuffer: 1M rows (small here, so 429s are easy to trigger)
+  BACKPRESSURE_MAX_UNINDEXED_BYTES: "67108864"   # turbopuffer: 2 GB
+  EVENTUAL_MAX_STALENESS_S: "60"           # turbopuffer: 60 s
+  EVENTUAL_MAX_UNINDEXED_BYTES: "134217728"      # turbopuffer: 128 MiB
+  INDEXER_MAX_ROWS_PER_PASS: "3000"
+  INDEXER_PASS_DELAY_S: "1"                # demo only: slows the drain so you can watch it
+  INDEXER_MAX_SEGMENT_ROWS: "25000"        # merge cap: a 50k merge of arXiv rows touched the indexer's 2 Gi limit
+  CACHE_DISK_BYTES: "1073741824"           # keep below the emptyDir sizeLimit
+  CACHE_MEMORY_BYTES: "268435456"
+  PEER_DNS: temupuffer-query-peers      # headless Service in the same namespace
+  INDEXER_DNS: temupuffer-indexer

@@ -1,0 +1,32 @@
+# The search API starts and stops the ingest Jobs for the Scale page's Data card.
+# This Role is all it can do in Kubernetes: Jobs and Pods, in its own namespace only.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: search-api
+  labels: {app.kubernetes.io/name: search-api, app.kubernetes.io/part-of: temupuffer-search}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: search-api-jobs
+  labels: {app.kubernetes.io/part-of: temupuffer-search}
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]                # Job pod status on the card, and the API's own image
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: search-api-jobs
+  labels: {app.kubernetes.io/part-of: temupuffer-search}
+subjects:
+  - {kind: ServiceAccount, name: search-api}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: search-api-jobs

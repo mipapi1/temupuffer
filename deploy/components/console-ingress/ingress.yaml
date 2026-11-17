@@ -1,0 +1,16 @@
+# One Ingress for the console. No host, so it answers on any hostname or IP
+# that reaches the ingress controller (http://<node-ip>/ on a stock K3s).
+# The API is reachable through the console at /api/..., e.g.
+#   curl -H "Authorization: Bearer $KEY" http://<node-ip>/api/v1/namespaces
+# deploy/k3s.sh --host <name> adds a hostname.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temupuffer
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: temupuffer-console, port: {name: http}}}

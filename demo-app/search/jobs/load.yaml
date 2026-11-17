@@ -1,0 +1,45 @@
+# Load the first DOCS embedded papers into the search namespace, in large batches,
+# retrying 429s. Started by `make search-load DOCS=...`, which fills in __DOCS__, __SKIP__ and __BACKEND__.
+# Resume after a failure: DOCS=<remaining> SKIP=<already acked> (upserts are idempotent, so overlap is harmless).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: search-load
+  labels: {app.kubernetes.io/name: search-load, app.kubernetes.io/part-of: temupuffer-search}
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: search-load, app.kubernetes.io/part-of: temupuffer-search}
+    spec:
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      # Never next to the indexer on prod01: the two together took the node (and k3s) down.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - {key: kubernetes.io/hostname, operator: NotIn, values: [k3s-prod01]}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - {key: kubernetes.io/hostname, operator: In, values: [k3s-prod02]}
+      containers:
+        - name: load
+          image: temupuffer-search
+          command: ["python", "-m", "search.ingest", "load", "--docs", "__DOCS__", "--backend", "__BACKEND__",
+                    "--skip", "__SKIP__", "--batch", "2000", "--concurrency", "2", "--wait-index", "3600"]
+          envFrom:
+            - configMapRef: {name: search-config}
+            - secretRef: {name: search-secrets}
+          # ~1 GB resident at concurrency 4 (2026-11-16). Throughput is capped by the
+          # indexer's 429 back-pressure, so 2 in flight loads as fast at half the memory.
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits: {memory: 1536Mi}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 64Mi}}]

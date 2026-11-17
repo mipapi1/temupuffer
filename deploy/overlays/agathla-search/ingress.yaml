@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: temupuffer-search
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: temupuffer-search.agathla.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: search-ui, port: {name: http}}}

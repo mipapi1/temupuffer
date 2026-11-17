@@ -1,0 +1,26 @@
+{
+  "gcp": {
+    "fetchedAt": "2026-11-09T22:05:04.495Z",
+    "mode": "snapshot",
+    "compute": 1570,
+    "blockStorage": 25,
+    "objectStorage": 20,
+    "network": 15
+  },
+  "aws": {
+    "fetchedAt": "2026-11-09T22:10:20.591Z",
+    "mode": "live",
+    "compute": 5417,
+    "blockStorage": 25,
+    "objectStorage": 20,
+    "network": 15
+  },
+  "azure": {
+    "fetchedAt": "2026-11-09T22:10:45.012Z",
+    "mode": "live",
+    "compute": 3599,
+    "blockStorage": 20,
+    "objectStorage": 20,
+    "network": 15
+  }
+}

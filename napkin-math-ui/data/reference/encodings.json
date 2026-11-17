@@ -1,0 +1,38 @@
+[
+  {
+    "id": "columnar-table",
+    "name": "Columnar table",
+    "encoding": "Parquet dictionary + RLE + zstd",
+    "ratio": "10x"
+  },
+  {
+    "id": "floats",
+    "name": "Floats",
+    "encoding": "ALP",
+    "ratio": "4x"
+  },
+  {
+    "id": "integers",
+    "name": "Integers",
+    "encoding": "FOR / delta + bitpacking",
+    "ratio": "2-4x"
+  },
+  {
+    "id": "strings",
+    "name": "Strings",
+    "encoding": "FSST",
+    "ratio": "2x"
+  },
+  {
+    "id": "low-cardinality-column",
+    "name": "Low-cardinality column",
+    "encoding": "Dictionary",
+    "ratio": "log2(distinct) bits / value"
+  },
+  {
+    "id": "sorted-or-repeating-column",
+    "name": "Sorted or repeating column",
+    "encoding": "RLE",
+    "ratio": "3 bytes / run"
+  }
+]

@@ -1,0 +1,88 @@
+# The author's homelab (not a template, see deploy/overlays/k3s for that):
+# the existing SILO in namespace "turbopuffer", Traefik on *.agathla.com,
+# images in Forgejo.
+#
+# Before the first apply:
+#   1. ./deploy/overlays/agathla/create-secrets.sh  (copies SILO creds, makes an API key)
+#   2. REGISTRY=git.agathla.com/papi ./deploy/build-images.sh push   (then update the digests below)
+# Then:  make homelab-apply   (this stack, plus the Azure stack if .env.azure exists)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: temupuffer
+resources:
+  - namespace.yaml
+  - ../../base
+  - ingress.yaml
+components:
+  # api-router first: components run in order, and agathla-images must see the router to pin its image.
+  - ../../components/api-router       # temupuffer-api.agathla.com -> namespace-affinity router
+  - ../../components/agathla-images   # image digests, shared with ../agathla-azure
+patches:
+  # The console's Storage picker: this stack (SILO) and the Azure stack in
+  # namespace temupuffer-azure (deploy/overlays/agathla-azure). Each stack is a
+  # ring of its query pods ('+'-joined, one per StatefulSet replica), with full
+  # DNS names because the Azure stack is in another namespace.
+  - target: {kind: Deployment, name: temupuffer-console}
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: BACKENDS
+          value: >-
+            silo|SILO (S3)|temupuffer-query-0.temupuffer-query-peers.temupuffer.svc.cluster.local:8080+temupuffer-query-1.temupuffer-query-peers.temupuffer.svc.cluster.local:8080,azure|Azure Blob|temupuffer-query-0.temupuffer-query-peers.temupuffer-azure.svc.cluster.local:8080+temupuffer-query-1.temupuffer-query-peers.temupuffer-azure.svc.cluster.local:8080
+
+  # Sized for a 500k-row arXiv shard per query pod (temupuffer search, TEMUPUFFER_NAMESPACES):
+  # ~1.95 GB of segment files, all of which must fit the memory cache or every query re-parses
+  # (see the CACHE_MEMORY_BYTES note in base/query.yaml). Measured at 100k: ~815 Mi resident
+  # (5-7.6 KiB/doc), so 2.5-3.8 GiB expected at 500k: request 3Gi, limit 5Gi for headroom.
+  # Memory cache 2.5 GiB, disk cache 3 GiB (below the 4Gi emptyDir). No comments inside the
+  # patch: kustomize then fails to re-parse the patched StatefulSet ("could not find expected ':'").
+  - target: {kind: StatefulSet, name: temupuffer-query}
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata: {name: temupuffer-query}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: query
+                env:
+                  - {name: CACHE_MEMORY_BYTES, value: "2684354560"}
+                  - {name: CACHE_DISK_BYTES, value: "3221225472"}
+                resources:
+                  requests: {cpu: 250m, memory: 3Gi}
+                  limits: {memory: 5Gi}
+            volumes:
+              - name: cache
+                emptyDir: {sizeLimit: 4Gi}
+
+  # The indexer stays on prod01 (query-0/1 and SILO grow into prod02/03 as the 1M
+  # load lands). Its memory is bounded by INDEXER_MAX_SEGMENT_ROWS (25k-row merges),
+  # measured 1.6-1.9 GB resident, so request what it really uses: with the old 512Mi
+  # request the scheduler stacked the load job next to it and prod01 ran out of RAM
+  # (global OOM, k3s lost its leases; 2026-11-13 and 2026-11-16). The limit sits just
+  # above, so a runaway merge kills only the indexer, not the node.
+  - target: {kind: Deployment, name: temupuffer-indexer}
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata: {name: temupuffer-indexer}
+      spec:
+        template:
+          spec:
+            nodeSelector: {kubernetes.io/hostname: k3s-prod01}
+            containers:
+              - name: indexer
+                resources:
+                  requests: {cpu: 250m, memory: 2Gi}
+                  limits: {memory: 2560Mi}
+
+configMapGenerator:
+  - name: temupuffer-s3-endpoint
+    literals:
+      # SILO, reached across namespaces through cluster DNS. Bucket "temupuffer"
+      # (never "wal-lab", which holds the lab data).
+      - S3_ENDPOINT=http://silo.turbopuffer.svc.cluster.local:9000
+    options:
+      disableNameSuffixHash: true

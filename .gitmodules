@@ -1,0 +1,3 @@
+[submodule "napkin-math-ui/upstream"]
+	path = napkin-math-ui/upstream
+	url = https://github.com/sirupsen/napkin-math

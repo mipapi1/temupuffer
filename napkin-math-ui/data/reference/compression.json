@@ -1,0 +1,44 @@
+[
+  {
+    "id": "html",
+    "name": "HTML",
+    "low": 4,
+    "high": 8
+  },
+  {
+    "id": "english",
+    "name": "English",
+    "low": 2,
+    "high": 4
+  },
+  {
+    "id": "source-code",
+    "name": "Source Code",
+    "low": 3,
+    "high": 10
+  },
+  {
+    "id": "executables",
+    "name": "Executables",
+    "low": 2,
+    "high": 5
+  },
+  {
+    "id": "rpc-json",
+    "name": "RPC (JSON)",
+    "low": 5,
+    "high": 13
+  },
+  {
+    "id": "logs",
+    "name": "Logs",
+    "low": 6,
+    "high": 30
+  },
+  {
+    "id": "encrypted-compressed",
+    "name": "Encrypted / compressed",
+    "low": 1,
+    "high": 1
+  }
+]

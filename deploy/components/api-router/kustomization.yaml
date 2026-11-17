@@ -1,0 +1,13 @@
+# The API router: nginx (the console image, port 8081) in front of the query
+# nodes, so API clients get the same namespace affinity as the console. Each
+# namespace goes to one query pod, chosen by a consistent hash of its name
+# (db/ui/backends.sh).
+#
+#   client -> Traefik (TLS, hostname) -> temupuffer-router -> temupuffer-query-N
+#
+# Traefik can't do this itself: its consistent hashing (hrw) only hashes the
+# client IP. Point your API Ingress at Service temupuffer-router (port http).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - router.yaml

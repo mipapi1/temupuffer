@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: search-config
+  labels: {app.kubernetes.io/part-of: temupuffer-search}
+data:
+  BACKEND: temupuffer
+  SEARCH_NAMESPACE: arxiv
+  # temupuffer's API router (consistent hash by namespace), in another K8s namespace.
+  TEMUPUFFER_URL: http://temupuffer-router.temupuffer.svc.cluster.local
+  EMBEDDER_URL: http://search-embedder:8091
+  SEARCH_API_URL: http://search-api:8090
+  # Embed once, load many times: the embed Job writes here, the load Job reads.
+  EMBEDDINGS_URI: s3://temupuffer-search/embeddings/minilm-128
+  S3_ENDPOINT: http://silo.turbopuffer.svc.cluster.local:9000
+  TURBOPUFFER_NAMESPACE_PREFIX: demo-
+  # "1" = the Scale page can start/stop the embed and load Jobs and reset the namespace.
+  # Off by default: anyone who can open the UI could use them. The homelab overlay turns it on.
+  ADMIN_ACTIONS: "0"
